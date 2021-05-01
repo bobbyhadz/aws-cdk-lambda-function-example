@@ -1,3 +1,4 @@
+import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as cdk from '@aws-cdk/core';
 import * as path from 'path';
@@ -19,7 +20,20 @@ export class CdkStarterStack extends cdk.Stack {
           cdk.Stack.of(this).availabilityZones,
         ),
       },
-      reservedConcurrentExecutions: 1,
     });
+
+    // 👇 create a policy statement
+    const listBucketsPolicy = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['s3:ListAllMyBuckets'],
+      resources: ['arn:aws:s3:::*'],
+    });
+
+    // 👇 attach the policy to the function's role
+    lambdaFunction.role?.attachInlinePolicy(
+      new iam.Policy(this, 'list-buckets', {
+        statements: [listBucketsPolicy],
+      }),
+    );
   }
 }
